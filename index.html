@@ -1,0 +1,3168 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+<title>RIN Map</title>
+
+<link
+rel="stylesheet"
+href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"
+/>
+
+<style>
+
+* {
+    box-sizing: border-box;
+}
+
+body {
+    margin: 0;
+    font-family:
+        -apple-system,
+        BlinkMacSystemFont,
+        "PingFang SC",
+        "Helvetica Neue",
+        sans-serif;
+    background: #fff7fa;
+    overflow: hidden;
+}
+
+
+/* ===== 左侧目录 ===== */
+
+.sidebar {
+    position: fixed;
+    left: 0;
+    top: 0;
+    width: 285px;
+    height: 100vh;
+
+    background: rgba(255,255,255,.97);
+
+    border-right: 1px solid #f1dce5;
+
+    z-index: 2000;
+
+    overflow-y: auto;
+
+    padding: 28px 20px 25px;
+}
+
+
+.logo {
+    font-size: 23px;
+    font-weight: 700;
+    color: #d9578c;
+    margin-bottom: 5px;
+}
+
+
+.logo-credit {
+    font-size: 11px;
+    color: #b79aa5;
+    margin-bottom: 30px;
+    letter-spacing: .3px;
+}
+
+
+.menu-title {
+    font-size: 11px;
+    letter-spacing: 2px;
+    color: #b18b99;
+    margin-bottom: 15px;
+    font-weight: 700;
+}
+
+
+.country-title {
+    font-size: 13px;
+    font-weight: 700;
+    color: #6f555f;
+    margin: 18px 0 8px;
+}
+
+
+.city-button {
+    width: 100%;
+    border: none;
+    background: transparent;
+    text-align: left;
+
+    padding: 10px 12px;
+
+    border-radius: 10px;
+
+    color: #59454d;
+
+    font-size: 14px;
+
+    font-family: inherit;
+
+    cursor: pointer;
+}
+
+
+.city-button:hover {
+    background: #fff0f5;
+}
+
+
+.city-button.active {
+    background: #fce3ec;
+    color: #c64e7e;
+    font-weight: 700;
+}
+
+
+/* ===== 类型 ===== */
+
+.type-list {
+    padding-left: 12px;
+    display: none;
+}
+
+
+.type-list.show {
+    display: block;
+}
+
+
+.type-button {
+    width: 100%;
+    border: none;
+    background: transparent;
+
+    text-align: left;
+
+    padding: 8px 10px;
+
+    border-radius: 8px;
+
+    color: #806a73;
+
+    font-size: 13px;
+
+    font-family: inherit;
+
+    cursor: pointer;
+}
+
+
+.type-button:hover {
+    background: #fff5f8;
+}
+
+
+.type-button.active {
+    color: #d9578c;
+    font-weight: 700;
+}
+
+
+/* ===== 地点 ===== */
+
+.spot-list {
+    padding-left: 10px;
+    margin-top: 3px;
+    margin-bottom: 5px;
+}
+
+
+.spot-button {
+    width: 100%;
+    border: none;
+    background: transparent;
+
+    text-align: left;
+
+    padding: 7px 10px;
+
+    color: #9a7c86;
+
+    font-size: 12px;
+
+    line-height: 1.5;
+
+    font-family: inherit;
+
+    cursor: pointer;
+}
+
+
+.spot-button:hover {
+    color: #d9578c;
+    background: #fff7fa;
+    border-radius: 7px;
+}
+
+
+/* ===== 左侧署名 ===== */
+
+.credit {
+    margin-top: 45px;
+
+    padding-top: 18px;
+
+    border-top: 1px solid #f1e4e9;
+
+    font-size: 10px;
+
+    line-height: 1.7;
+
+    color: #b9a3ab;
+
+    letter-spacing: .2px;
+}
+
+
+.credit-name {
+    display: inline-block;
+
+    margin-top: 2px;
+
+    color: #d9578c;
+
+    font-size: 12px;
+
+    font-weight: 800;
+
+    letter-spacing: .3px;
+}
+
+
+/* ===== 地图 ===== */
+
+#map {
+    position: fixed;
+
+    left: 285px;
+
+    top: 0;
+
+    width: calc(100% - 285px);
+
+    height: 100vh;
+}
+
+
+/* ===== 地图水印 ===== */
+
+.map-watermark {
+    position: fixed;
+
+    right: 20px;
+
+    bottom: 20px;
+
+    z-index: 1500;
+
+    background: rgba(255,255,255,.72);
+
+    padding: 6px 11px;
+
+    border-radius: 10px;
+
+    color: #b47d94;
+
+    font-size: 11px;
+
+    font-weight: 700;
+
+    letter-spacing: .4px;
+
+    pointer-events: none;
+}
+
+
+/* ===== Popup ===== */
+
+.popup {
+    width: 285px;
+    padding: 3px 2px;
+}
+
+
+.popup h2 {
+    margin: 0 0 9px;
+
+    color: #4b3540;
+
+    font-size: 17px;
+
+    line-height: 1.35;
+
+    font-weight: 700;
+}
+
+
+.subtitle {
+    color: #d9578c;
+
+    font-size: 14px;
+
+    font-weight: 600;
+
+    margin-bottom: 4px;
+}
+
+
+.source {
+    color: #9b7a87;
+
+    font-size: 11px;
+
+    margin-bottom: 15px;
+}
+
+
+.divider {
+    height: 1px;
+
+    background: #f2e3e8;
+
+    margin: 12px 0;
+}
+
+
+.info {
+    font-size: 13px;
+
+    color: #5d4c54;
+
+    line-height: 1.7;
+
+    margin: 6px 0;
+}
+
+
+.info strong {
+    color: #a94b73;
+}
+
+
+.menu-item {
+    margin-left: 18px;
+
+    line-height: 1.7;
+}
+
+
+.popup-credit {
+    text-align: right;
+
+    color: #c09eab;
+
+    font-size: 9px;
+
+    margin-top: 12px;
+
+    letter-spacing: .3px;
+}
+
+
+/* ===== 地图按钮 ===== */
+
+.buttons {
+    display: flex;
+
+    gap: 9px;
+
+    margin-top: 17px;
+}
+
+
+.map-button {
+    flex: 1;
+
+    padding: 10px 7px;
+
+    text-align: center;
+
+    text-decoration: none;
+
+    border-radius: 11px;
+
+    font-size: 12px;
+
+    font-weight: 600;
+}
+
+
+.google {
+    background: #f4f4f4;
+    color: #4b4b4b;
+}
+
+
+.naver {
+    background: #e8f7ed;
+    color: #168b3c;
+}
+
+.amap {
+    background: #edf3ff;
+    color: #2f63c7;
+}
+
+
+/* ===== 目录展开 / 收起 ===== */
+.menu-toggle {
+    display: none;
+    position: fixed;
+    top: 14px;
+    left: 14px;
+    z-index: 3100;
+    width: 44px;
+    height: 44px;
+    border: none;
+    border-radius: 13px;
+    background: rgba(255,255,255,.96);
+    color: #c64e7e;
+    font-size: 21px;
+    box-shadow: 0 4px 16px rgba(120,70,90,.14);
+    cursor: pointer;
+}
+
+.sidebar-close {
+    display: block;
+    position: absolute;
+    top: 14px;
+    right: 14px;
+    width: 36px;
+    height: 36px;
+    border: none;
+    border-radius: 10px;
+    background: #fff0f5;
+    color: #c64e7e;
+    font-size: 22px;
+    cursor: pointer;
+}
+
+.sidebar-overlay {
+    display: none;
+    position: fixed;
+    inset: 0;
+    background: rgba(70,45,55,.22);
+    z-index: 2900;
+}
+
+/* 电脑端：默认展开，但可以收起 */
+body.sidebar-collapsed .sidebar {
+    transform: translateX(-100%);
+    box-shadow: none;
+}
+
+body.sidebar-collapsed #map {
+    left: 0;
+    width: 100%;
+}
+
+body.sidebar-collapsed .menu-toggle {
+    display: block;
+}
+
+.sidebar {
+    transition: transform .28s ease, box-shadow .28s ease;
+}
+
+#map {
+    transition: left .28s ease, width .28s ease;
+}
+
+/* ===== 手机 ===== */
+@media (max-width: 700px) {
+
+    .sidebar {
+        width: 285px;
+        transform: translateX(-100%);
+        padding: 55px 18px 25px;
+        box-shadow: none;
+        z-index: 3000;
+    }
+
+    .sidebar.open {
+        transform: translateX(0);
+        box-shadow: 8px 0 30px rgba(70,40,55,.12);
+    }
+
+    .menu-toggle {
+        display: block;
+    }
+
+    .sidebar-overlay.open {
+        display: block;
+    }
+
+    #map {
+        left: 0;
+        width: 100%;
+    }
+
+    .logo {
+        font-size: 22px;
+    }
+
+    .city-button {
+        font-size: 13px;
+    }
+
+    .type-button {
+        font-size: 12px;
+    }
+
+    .map-watermark {
+        right: 10px;
+        bottom: 12px;
+        font-size: 10px;
+    }
+
+    .popup {
+        width: min(285px, 72vw);
+    }
+}
+
+/* ===== 想去 / 路线规划 ===== */
+
+.want-btn{
+    width:100%;
+    margin-top:10px;
+    border:none;
+    border-radius:10px;
+    padding:9px 10px;
+    background:#fff0f5;
+    color:#c65d86;
+    font-size:12px;
+    font-weight:700;
+    cursor:pointer;
+}
+
+.want-btn.selected{
+    background:#e88cad;
+    color:#fff;
+}
+
+.route-launch{
+    position:fixed;
+    right:18px;
+    bottom:18px;
+    z-index:2200;
+    border:none;
+    border-radius:14px;
+    padding:11px 14px;
+    background:#fff;
+    color:#c55f87;
+    font-weight:800;
+    box-shadow:0 5px 18px rgba(100,50,70,.15);
+    cursor:pointer;
+}
+
+.route-panel{
+    position:fixed;
+    right:18px;
+    bottom:64px;
+    z-index:2200;
+    width:330px;
+    max-height:62vh;
+    overflow:auto;
+    background:rgba(255,255,255,.97);
+    border:1px solid #f0dce5;
+    border-radius:18px;
+    box-shadow:0 10px 30px rgba(100,50,70,.16);
+    padding:16px;
+    display:none;
+}
+
+.route-panel.show{
+    display:block;
+}
+
+.route-title{
+    font-size:15px;
+    font-weight:800;
+    color:#5a434c;
+    margin-bottom:4px;
+}
+
+.route-sub{
+    font-size:11px;
+    line-height:1.5;
+    color:#a58994;
+    margin-bottom:12px;
+}
+
+.route-selected{
+    display:flex;
+    flex-direction:column;
+    gap:7px;
+    margin-bottom:12px;
+}
+
+.route-chip{
+    display:flex;
+    align-items:center;
+    justify-content:space-between;
+    gap:8px;
+    padding:8px 10px;
+    background:#fff7fa;
+    border-radius:10px;
+    font-size:12px;
+    color:#6d5660;
+}
+
+.route-remove{
+    border:none;
+    background:transparent;
+    color:#c9809d;
+    cursor:pointer;
+    font-size:15px;
+}
+
+.route-actions{
+    display:flex;
+    gap:8px;
+}
+
+.route-action{
+    flex:1;
+    border:none;
+    border-radius:11px;
+    padding:10px;
+    cursor:pointer;
+    font-size:12px;
+    font-weight:700;
+}
+
+.route-plan{
+    background:#df6f9c;
+    color:#fff;
+}
+
+.route-clear{
+    background:#f4edf0;
+    color:#946c7c;
+}
+
+.route-result{
+    display:none;
+    margin-top:13px;
+    padding-top:12px;
+    border-top:1px solid #f0dce5;
+}
+
+.route-result.show{
+    display:block;
+}
+
+.route-step{
+    padding:8px 10px;
+    margin-bottom:7px;
+    border-radius:10px;
+    background:#fff8fb;
+    font-size:12px;
+    color:#5f4952;
+}
+
+.route-map-links{
+    display:flex;
+    gap:8px;
+    margin-top:10px;
+}
+
+.route-link{
+    flex:1;
+    text-align:center;
+    text-decoration:none;
+    border-radius:11px;
+    padding:10px 8px;
+    font-size:12px;
+    font-weight:700;
+}
+
+.route-google{
+    background:#f2f2f2;
+    color:#444;
+}
+
+.route-naver{
+    background:#e8f7ed;
+    color:#168b3c;
+}
+
+.route-note{
+    margin-top:9px;
+    font-size:10px;
+    line-height:1.5;
+    color:#aa919a;
+}
+
+@media (max-width:700px){
+    .route-panel{
+        left:12px;
+        right:12px;
+        bottom:68px;
+        width:auto;
+        max-height:58vh;
+    }
+
+    .route-launch{
+        right:12px;
+        bottom:12px;
+    }
+}
+
+
+/* ===== 搜索 ===== */
+.search-box{
+    margin:0 0 14px;
+}
+.search-input{
+    width:100%;
+    border:1px solid #efd6e1;
+    border-radius:11px;
+    padding:10px 11px;
+    font:inherit;
+    font-size:12px;
+    color:#5d4650;
+    background:#fffafd;
+    outline:none;
+}
+.search-input:focus{
+    border-color:#e48bae;
+    box-shadow:0 0 0 3px rgba(228,139,174,.10);
+}
+.search-results{
+    margin-top:6px;
+    display:none;
+    background:#fff;
+    border:1px solid #f0dce5;
+    border-radius:11px;
+    overflow:hidden;
+}
+.search-results.show{
+    display:block;
+}
+.search-result{
+    width:100%;
+    border:none;
+    background:#fff;
+    text-align:left;
+    padding:9px 10px;
+    color:#755966;
+    font-size:12px;
+    cursor:pointer;
+}
+.search-result:hover{
+    background:#fff5f8;
+    color:#d9578c;
+}
+
+/* ===== 附近同款 ===== */
+.nearby-box{
+    margin-top:12px;
+    padding:10px 11px;
+    background:#fff8fb;
+    border-radius:11px;
+}
+.nearby-title{
+    font-size:11px;
+    font-weight:800;
+    color:#a56d83;
+    margin-bottom:5px;
+}
+.nearby-link{
+    display:block;
+    width:100%;
+    border:none;
+    background:transparent;
+    text-align:left;
+    padding:4px 0;
+    color:#8d6a78;
+    font-size:11px;
+    cursor:pointer;
+}
+.nearby-link:hover{
+    color:#d9578c;
+}
+
+/* ===== 路线手动排序 ===== */
+.route-chip-controls{
+    display:flex;
+    align-items:center;
+    gap:3px;
+}
+.route-move{
+    width:24px;
+    height:24px;
+    border:none;
+    border-radius:7px;
+    background:#f4e9ee;
+    color:#9a677a;
+    cursor:pointer;
+    font-size:11px;
+    padding:0;
+}
+.route-move:disabled{
+    opacity:.3;
+    cursor:default;
+}
+.route-hint{
+    font-size:10px;
+    color:#ad929d;
+    line-height:1.5;
+    margin:-4px 0 10px;
+}
+
+
+/* ===== 更紧凑的折叠目录 ===== */
+.country-title{
+    cursor:pointer;
+    user-select:none;
+    position:relative;
+    padding-right:24px;
+}
+.country-title::after{
+    content:"›";
+    position:absolute;
+    right:8px;
+    top:50%;
+    transform:translateY(-50%) rotate(90deg);
+    transition:transform .18s ease;
+    color:#b8879a;
+}
+.country-title.collapsed::after{
+    transform:translateY(-50%) rotate(0deg);
+}
+.country-group{
+    display:block;
+}
+.country-group.collapsed{
+    display:none;
+}
+.city-button{
+    position:relative;
+    padding-right:28px !important;
+}
+.city-button::after{
+    content:"›";
+    position:absolute;
+    right:10px;
+    top:50%;
+    transform:translateY(-50%);
+    transition:transform .18s ease;
+    color:#c194a5;
+}
+.city-button.open::after{
+    transform:translateY(-50%) rotate(90deg);
+}
+.type-list{
+    display:none !important;
+}
+.type-list.open{
+    display:block !important;
+}
+.type-button[data-type="all"]{
+    display:none !important;
+}
+.spot-list{
+    display:none !important;
+}
+.spot-list.open{
+    display:block !important;
+}
+.type-button{
+    position:relative;
+    padding-right:26px !important;
+}
+.type-button:not([data-type="all"])::after{
+    content:"›";
+    position:absolute;
+    right:10px;
+    top:50%;
+    transform:translateY(-50%);
+    transition:transform .18s ease;
+    color:#c9a0b0;
+}
+.type-button.open:not([data-type="all"])::after{
+    transform:translateY(-50%) rotate(90deg);
+}
+
+</style>
+
+</head>
+
+
+<body>
+
+<button class="menu-toggle" id="menuToggle" aria-label="打开目录">☰</button>
+<div class="sidebar-overlay" id="sidebarOverlay"></div>
+
+
+<!-- ===== 左侧目录 ===== -->
+
+<aside class="sidebar" id="sidebar">
+
+<button class="sidebar-close" id="sidebarClose" aria-label="收起目录">‹</button>
+
+
+<div class="logo">
+🐱 RIN Map
+</div>
+
+
+<div class="logo-credit">
+by ChinaNarinBar
+</div>
+
+
+<div class="menu-title">
+同款地点
+</div>
+
+
+<div class="search-box">
+    <input
+        class="search-input"
+        id="spotSearch"
+        type="search"
+        placeholder="🔍 搜索地点"
+        autocomplete="off"
+    >
+    <div
+        class="search-results"
+        id="searchResults"
+    ></div>
+</div>
+
+
+
+<div class="country-title">
+🇰🇷 韩国
+</div>
+<div class="country-group" data-country-group="Korea">
+
+
+<!-- ===== 首尔 ===== -->
+
+<button
+class="city-button active"
+data-city="Seoul"
+>
+首尔 · 13个地点
+</button>
+
+
+<div
+class="type-list show"
+data-city-types="Seoul"
+>
+
+
+<button
+class="type-button active"
+data-city="Seoul"
+data-type="all"
+>
+全部
+</button>
+
+
+<!-- 餐厅 -->
+
+<button
+class="type-button"
+data-city="Seoul"
+data-type="restaurant"
+>
+🍽️ 餐厅
+</button>
+
+<div class="spot-list" id="spot-list-Seoul-restaurant"></div>
+
+
+<!-- 咖啡厅 -->
+
+<button
+class="type-button"
+data-city="Seoul"
+data-type="cafe"
+>
+☕ 咖啡厅
+</button>
+
+<div class="spot-list" id="spot-list-Seoul-cafe"></div>
+
+
+<!-- 其他 -->
+
+<button
+class="type-button"
+data-city="Seoul"
+data-type="other"
+>
+✦ 其他
+</button>
+
+<div class="spot-list" id="spot-list-Seoul-other"></div>
+
+
+</div>
+
+
+<!-- ===== 大邱 ===== -->
+
+<button
+class="city-button"
+data-city="Daegu"
+>
+大邱 · 2个地点
+</button>
+
+
+<div
+class="type-list"
+data-city-types="Daegu"
+>
+
+
+<button
+class="type-button"
+data-city="Daegu"
+data-type="all"
+>
+全部
+</button>
+
+
+<button
+class="type-button"
+data-city="Daegu"
+data-type="restaurant"
+>
+🍽️ 餐厅
+</button>
+
+<div class="spot-list" id="spot-list-Daegu-restaurant"></div>
+
+
+<button
+class="type-button"
+data-city="Daegu"
+data-type="cafe"
+>
+☕ 咖啡厅
+</button>
+
+<div class="spot-list" id="spot-list-Daegu-cafe"></div>
+
+
+<button
+class="type-button"
+data-city="Daegu"
+data-type="other"
+>
+✦ 其他
+</button>
+
+<div class="spot-list" id="spot-list-Daegu-other"></div>
+
+
+</div>
+
+
+
+</div>
+
+<div class="country-title">
+🇨🇳 中国
+</div>
+<div class="country-group" data-country-group="China">
+
+
+<!-- ===== 香港 ===== -->
+
+<button
+class="city-button"
+data-city="Hong Kong"
+>
+香港 · 1个地点
+</button>
+
+<div
+class="type-list"
+data-city-types="Hong Kong"
+>
+
+<button
+class="type-button"
+data-city="Hong Kong"
+data-type="all"
+>
+全部
+</button>
+
+<button
+class="type-button"
+data-city="Hong Kong"
+data-type="restaurant"
+>
+🍽️ 餐厅
+</button>
+
+<div class="spot-list" id="spot-list-Hong Kong-restaurant"></div>
+
+<button
+class="type-button"
+data-city="Hong Kong"
+data-type="cafe"
+>
+☕ 咖啡厅
+</button>
+
+<div class="spot-list" id="spot-list-Hong Kong-cafe"></div>
+
+<button
+class="type-button"
+data-city="Hong Kong"
+data-type="other"
+>
+✦ 其他
+</button>
+
+<div class="spot-list" id="spot-list-Hong Kong-other"></div>
+
+</div>
+
+
+</div>
+
+<!-- ===== 署名 ===== -->
+
+<div class="credit">
+
+Content Curated & Produced by
+
+<br>
+
+<span class="credit-name">
+ChinaNarinBar
+</span>
+
+</div>
+
+
+</aside>
+
+
+<!-- 地图 -->
+
+<div id="map"></div>
+
+
+
+<button class="route-launch" id="routeLaunch">♡ 想去 0</button>
+
+<div class="route-panel" id="routePanel">
+    <div class="route-title">🐱 我的打卡路线</div>
+    <div class="route-sub">先在地点卡片里添加多个想去地点，再点“规划路线”。</div>
+
+    <div class="route-selected" id="routeSelected"></div>
+<div class="route-hint">自动规划后，也可以用 ↑ ↓ 手动调整顺序。</div>
+
+    <div class="route-actions">
+        <button class="route-action route-plan" id="routePlan">规划路线</button>
+        <button class="route-action route-clear" id="routeClear">清空</button>
+    </div>
+
+    <div class="route-result" id="routeResult">
+        <div id="routeOrder"></div>
+
+        <div class="route-map-links">
+            <a class="route-link route-google" id="googleRoute"
+               target="_blank" rel="noopener noreferrer">
+                🗺️ Google Maps
+            </a>
+
+            <a class="route-link route-naver" id="naverNext"
+               target="_blank" rel="noopener noreferrer">
+                🟢 Naver Map
+            </a>
+        </div>
+
+        <div class="route-note">
+            当前为试验版：RIN Map 按地点位置推荐顺序，不计算实时交通。韩国地点可用 Naver Map，香港地点可用高德地图；Google Maps 保留为通用路线入口。
+        </div>
+    </div>
+</div>
+
+
+<!-- 地图水印 -->
+
+<div class="map-watermark">
+@ChinaNarinBar
+</div>
+
+
+<script
+src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js">
+</script>
+
+<script>
+const spots = [
+
+
+
+/* ① 炒年糕 */
+
+{
+    city: "Seoul",
+    type: "restaurant",
+
+    name:
+    "쌍둥이네 (신사시장 떡볶이)",
+
+    subtitle:
+    "ANNARIN同款炒年糕",
+
+    source:
+    "出处：250312 Inside MEOVV",
+    lat: 37.5322913,
+    lng: 127.0284149,
+
+    naverPin: "217958891",
+
+    address:
+    "서울 강남구 압구정로29길 72-1",
+
+    transport:
+    "3号线 · 狎鸥亭站 1号出口",
+
+    menu: [
+        "떡볶이 2인분",
+        "김말이",
+        "어묵"
+    ],
+
+    menuChinese:
+    "2人份炒年糕＋炸紫菜卷＋鱼饼",
+
+    hours:
+    "周一至周六 10:00–17:00<br>周日休息",
+
+    google:
+    "https://maps.app.goo.gl/4gB5K61K1JUsvh576?g_st=ic",
+
+    naver:
+    "https://naver.me/Fc687Vib"
+},
+
+
+/* ② 狎鸥亭小学 */
+
+{
+    city: "Seoul",
+    type: "other",
+
+    name:
+    "狎鸥亭小学",
+
+    subtitle:
+    "NARIN小学",
+
+    source:
+    "出处：250312 Inside MEOVV",
+    lat: 37.5317491,
+    lng: 127.0308922,
+
+    naverPin: "11890627",
+
+    address:
+    "서울특별시 강남구 압구정로39길 29",
+
+    transport:
+    "3号线 · 狎鸥亭站 1号出口",
+
+    google:
+    "https://maps.app.goo.gl/cCSD6GRNrwSgEuXf9?g_st=ic",
+
+    naver:
+    "https://naver.me/GSQEx0OV"
+},
+
+
+/* ③ 文具店 */
+
+{
+    city: "Seoul",
+    type: "other",
+
+    name:
+    "맨숀책팬시",
+
+    subtitle:
+    "NARIN同款文具店",
+
+    source:
+    "出处：250312 Inside MEOVV",
+    lat: 37.532433,
+    lng: 127.028613,
+
+    naverPin: "20622685",
+
+    address:
+    "서울 강남구 압구정동 454",
+
+    transport:
+    "3号线 · 狎鸥亭站 1号出口",
+
+    google:
+    "https://maps.app.goo.gl/DrdX14eGQDpgjUDx6?g_st=ic",
+
+    naver:
+    "https://naver.me/5bCMpkgu"
+},
+
+
+/* ④ Plant Cafe */
+
+{
+    city: "Seoul",
+    type: "restaurant",
+
+    name:
+    "Plant Cafe Seoul (Itaewon)",
+
+    subtitle:
+    "NARIN同款一人食餐厅",
+
+    source:
+    "出处：250312 MOV.",
+    lat: 37.5331396,
+    lng: 126.994198,
+
+    naverPin: "822066102",
+
+    address:
+    "서울특별시 용산구 보광로 117",
+
+    transport:
+    "6号线 · 梨泰院站 4号出口",
+
+    menu: [
+        "Hummus Tempeh Bowl",
+        "Truffle Mushroom Cream Pasta"
+    ],
+
+    hours:
+    "11:00–22:00<br>周一休息",
+
+    google:
+    "https://maps.app.goo.gl/54sWfbapETK1QYqi8?g_st=ic",
+
+    naver:
+    "https://naver.me/GvWl0POw"
+},
+
+
+/* ⑤ TBL 公司 */
+
+{
+    city: "Seoul",
+    type: "other",
+
+    name:
+    "世界上最棒的TBL公司呢^_^",
+
+    subtitle:
+    "MEOVV公司",
+    lat: 37.5345336,
+    lng: 126.9978147,
+
+    naverPin: "610442383",
+
+    address:
+    "서울특별시 용산구 한남동 736-9",
+
+    transport:
+    "6号线 · 梨泰院站 3号出口",
+
+    google:
+    "https://maps.app.goo.gl/xp8DrqcRJP7z3ZLU7?g_st=ic",
+
+    naver:
+    "https://naver.me/GhwB1D2n"
+},
+
+
+/* ⑥ TARTINE */
+
+{
+    city: "Seoul",
+    type: "cafe",
+
+    name:
+    "TARTINE",
+
+    subtitle:
+    "MEOVV签名墙",
+    lat: 37.5346242,
+    lng: 126.9978104,
+
+    naverPin: "1548209854",
+
+    address:
+    "서울특별시 용산구 한남동 736-9",
+
+    transport:
+    "6号线 · 梨泰院站 3号出口",
+
+    hours:
+    "09:30–21:30",
+
+    google:
+    "https://maps.app.goo.gl/HpYiZC6op7qvch9T9?g_st=ic",
+
+    naver:
+    "https://naver.me/5IfhuZkw"
+},
+
+
+/* ⑦ 소나무 */
+
+{
+    city: "Seoul",
+    type: "restaurant",
+
+    name:
+    "소나무",
+
+    subtitle:
+    "ANNARIN同款烤肉",
+
+    source:
+    "出处：260324 ANNARIN VLOG",
+    lat: 37.5250535,
+    lng: 127.0268348,
+
+    naverPin: "1618902912",
+
+    address:
+    "서울특별시 강남구 신사동 압구정로28길 22-9",
+
+    transport:
+    "3号线 · 狎鸥亭站 4号出口",
+
+    hours:
+    "16:30–22:00",
+
+    google:
+    "https://maps.app.goo.gl/ZseoR9GK6skJJnXg7?g_st=ic",
+
+    naver:
+    "https://naver.me/xnOUxNvY"
+}
+,
+
+/* ⑧ 숲길해장 */
+
+{
+    city: "Seoul",
+    type: "restaurant",
+
+    name:
+    "숲길해장",
+
+    subtitle:
+    "MEOVV团综同款醒酒汤",
+
+    source:
+    "出处：241220 CATCH MEOVV",
+    lat: 37.5468783,
+    lng: 126.9417888,
+
+    naverPin: "1998832713",
+
+    address:
+    "서울 마포구 대흥동 248-13",
+
+    transport:
+    "6号线 · 大兴站 3号出口",
+
+    menu: [
+        "NARIN：醒酒汤",
+        "SOOIN：醒酒汤",
+        "ANNA：醒酒汤",
+        "GAWON：内脏汤",
+        "ELLA：排骨汤"
+    ],
+
+    google:
+    "https://maps.app.goo.gl/5o83PXqsY4gjtasj6?g_st=ic",
+
+    naver:
+    "https://naver.me/Ix0PS7wj"
+}
+,
+
+/* ⑨ 소선 샤브 */
+
+{
+    city: "Daegu",
+    type: "restaurant",
+
+    name:
+    "소선 샤브",
+
+    subtitle:
+    "昼夜z同款涮涮锅",
+
+    source:
+    "出处：260310 SOOIN&NARIN VLOG",
+
+    lat: 35.8672789,
+    lng: 128.5926329,
+
+    naverPin: "1036133473",
+
+    address:
+    "대구 중구 남성로 53 1층",
+
+    transport:
+    "1号线或2号线 · 半月堂站 15号出口",
+
+    hours:
+    "11:30–21:15",
+
+    google:
+    "https://maps.app.goo.gl/uDXR21mXTMJhp5CS8?g_st=ic",
+
+    naver:
+    "https://naver.me/FwGKOC6m"
+},
+
+
+/* ⑩ 피에스베이커리 동성로 */
+
+{
+    city: "Daegu",
+    type: "cafe",
+
+    name:
+    "피에스베이커리 동성로",
+
+    subtitle:
+    "昼夜z同款咖啡店",
+
+    source:
+    "出处：260310 SOOIN&NARIN VLOG",
+
+    lat: 35.8656529,
+    lng: 128.5971388,
+
+    naverPin: "1841564892",
+
+    address:
+    "대구 중구 봉산동 25-6",
+
+    transport:
+    "1号线或2号线 · 半月堂站 10号出口",
+
+    hours:
+    "12:00–20:00<br>每周三、周四休息",
+
+    google:
+    "https://maps.app.goo.gl/sVevbu9Ky5ViPk7w6?g_st=ic",
+
+    naver:
+    "https://naver.me/IDkTAas7"
+},
+
+
+/* ⑪ 清溪山 */
+
+{
+    city: "Seoul",
+    type: "other",
+
+    name:
+    "清溪山",
+
+    subtitle:
+    "NARIN和经纪人姐姐一起爬的山",
+
+    source:
+    "出处：260120 NARIN爬山VLOG",
+
+    lat: 37.4484983,
+    lng: 127.0546366,
+
+    routeAddress:
+    "청계산입구역 2번 출구",
+
+    transport:
+    "新盆唐线 · 清溪山入口站 2号出口",
+
+    route: [
+        "梅峰步道"
+    ]
+}
+
+,
+
+/* ⑫ 청계산곤드레집 */
+
+{
+    city: "Seoul",
+    type: "restaurant",
+
+    name:
+    "청계산곤드레집",
+
+    subtitle:
+    "NARIN爬山后去的餐厅",
+
+    source:
+    "出处：260120 NARIN爬山VLOG",
+
+    lat: 37.445436,
+    lng: 127.0578013,
+
+    naverPin:
+    "38571420",
+
+    address:
+    "서울 서초구 청룡마을1길 1 1, 2층",
+
+    transport:
+    "新盆唐线 · 清溪山入口站 2号出口",
+
+    menu: [
+        "B套餐（2人份）"
+    ],
+
+    hours:
+    "11:00–20:30<br>周日 15:30–17:30 休息",
+
+    google:
+    "https://maps.app.goo.gl/YTpA8UxzUaDqE4xV6?g_st=ic",
+
+    naver:
+    "https://naver.me/xCjdlPgx"
+}
+
+,
+
+/* ⑬ 梅峰山 */
+{
+    city: "Seoul",
+    type: "other",
+    name: "梅峰山",
+    subtitle: "NARIN和妈妈一起爬的山",
+    source: "出处：250205 INSIDE MEOVV",
+    lat: 37.4850,
+    lng: 127.0458,
+    address: "서울 강남구 도곡동 산 32-6",
+    transport: "3号线 · 梅峰站 2号出口"
+},
+
+/* ⑭ Grand Hyatt Seoul Ice Rink */
+{
+    city: "Seoul",
+    type: "other",
+    name: "Grand Hyatt Seoul Ice Rink",
+    subtitle: "GARIN同款溜冰场",
+    source: "出处：250205 INSIDE MEOVV",
+    lat: 37.53945,
+    lng: 126.99714,
+    address: "서울 용산구 소월로 322",
+    transport: "首尔君悦酒店 GL层",
+    hours: "冬季限定",
+    google: "https://maps.app.goo.gl/pBueeFBA8QtMsLZY6?g_st=ic",
+    naver: "https://naver.me/GFs4HFBf"
+}
+
+,
+
+/* ⑮ Miffy Store */
+{
+    city: "Seoul",
+    type: "other",
+    name: "Miffy Store",
+    subtitle: "有MEOVV签名的Miffy快闪店",
+    source: "出处：260114 MEOVV约会VLOG",
+    lat: 37.54465,
+    lng: 127.05685,
+    address: "서울 성동구 연무장13길 5 미피스토어 서울",
+    transport: "2号线 · 圣水站 3号出口",
+    hours: "10:30–19:30",
+    google: "https://maps.app.goo.gl/XNrDYdBYKjLcLRUY6?g_st=ic",
+    naver: "https://naver.me/xzHGtRX7"
+}
+
+,
+
+/* ⑯ MOO LAH */
+{
+    city: "Hong Kong",
+    type: "restaurant",
+    name: "MOO LAH",
+    subtitle: "有MEOVV签名墙的餐厅",
+    lat: 22.28362,
+    lng: 114.15320,
+    address: "LG Floor, 66 Hollywood Rd, Central, Hong Kong Island, 香港",
+    hours: "12:00–22:00<br>周一休息",
+    google: "https://maps.app.goo.gl/MFFmBXVH2nGNMWt59?g_st=ic",
+    amap: "https://surl.amap.com/iEg467Mg1Rz"
+}
+
+
+];
+</script>
+
+
+<script>
+
+
+/* ===== 地图 ===== */
+
+const map =
+L.map('map').setView(
+    [37.532288, 127.028402],
+    13
+);
+
+
+L.tileLayer(
+    'https://tile.openstreetmap.org/{z}/{x}/{y}.png',
+    {
+        maxZoom: 19,
+        attribution:
+        '&copy; OpenStreetMap contributors'
+    }
+).addTo(map);
+
+
+/* ===== 地点资料由 spots.js 提供 ===== */
+
+/* ===== 城市中心 ===== */
+
+const cityCenters = {
+
+    Seoul:
+    [37.532288, 127.028402],
+
+    Daegu:
+    [35.8714, 128.6014],
+
+    "Hong Kong":
+    [22.3193, 114.1694]
+
+};
+
+
+let markers = [];
+
+const selectedSpotIndexes = new Set();
+
+let manualRouteOrder = [];
+let savedWantNames = [];
+
+try{
+    savedWantNames =
+    JSON.parse(
+        localStorage.getItem("rinMapWantNames") || "[]"
+    );
+}catch(e){
+    savedWantNames = [];
+}
+
+savedWantNames.forEach(name => {
+    const index =
+    spots.findIndex(
+        spot => spot.name === name
+    );
+
+    if(index >= 0){
+        selectedSpotIndexes.add(index);
+        manualRouteOrder.push(index);
+    }
+});
+
+function saveWantList(){
+    const names =
+    manualRouteOrder
+    .filter(index => selectedSpotIndexes.has(index))
+    .map(index => spots[index].name);
+
+    try{
+        localStorage.setItem(
+            "rinMapWantNames",
+            JSON.stringify(names)
+        );
+    }catch(e){}
+}
+
+
+
+
+/* ===== 附近同款 ===== */
+
+function haversineKm(a,b){
+
+    const R = 6371;
+    const toRad = d => d * Math.PI / 180;
+
+    const dLat =
+    toRad(b.lat - a.lat);
+
+    const dLng =
+    toRad(b.lng - a.lng);
+
+    const lat1 =
+    toRad(a.lat);
+
+    const lat2 =
+    toRad(b.lat);
+
+    const x =
+    Math.sin(dLat/2) ** 2 +
+    Math.cos(lat1) *
+    Math.cos(lat2) *
+    Math.sin(dLng/2) ** 2;
+
+    return 2 * R *
+    Math.asin(Math.sqrt(x));
+}
+
+function buildNearbyHTML(spot){
+
+    const nearby =
+    spots
+    .map((candidate,index) => ({
+        candidate,
+        index,
+        distance:
+        candidate === spot
+        ? Infinity
+        : haversineKm(spot,candidate)
+    }))
+    .filter(item =>
+        item.distance <= 1.0
+    )
+    .sort((a,b) =>
+        a.distance - b.distance
+    )
+    .slice(0,3);
+
+    if(!nearby.length){
+        return "";
+    }
+
+    return `
+    <div class="nearby-box">
+        <div class="nearby-title">
+        附近同款
+        </div>
+
+        ${nearby.map(item => `
+            <button
+            class="nearby-link"
+            data-nearby-index="${item.index}"
+            >
+            🐱 ${item.candidate.name}
+            · ${Math.round(item.distance*1000)}m
+            </button>
+        `).join("")}
+    </div>
+    `;
+}
+
+
+/* ===== 创建 Marker ===== */
+
+function createMarker(spot) {
+
+    const marker =
+    L.marker([
+        spot.lat,
+        spot.lng
+    ]);
+
+
+    let menuHTML = "";
+
+
+    if (spot.menu) {
+
+        menuHTML = `
+
+        <div class="info">
+
+        🍽️ <strong>同款菜单</strong><br>
+
+        ${spot.menu.map(
+            item =>
+            `<div class="menu-item">• ${item}</div>`
+        ).join("")}
+
+        ${
+            spot.menuChinese
+            ?
+            `<div class="menu-item">
+            （${spot.menuChinese}）
+            </div>`
+            :
+            ""
+        }
+
+        </div>
+
+        `;
+    }
+
+
+
+    let routeHTML = "";
+
+    if (spot.route) {
+
+        routeHTML = `
+
+        <div class="info">
+
+        🥾 <strong>同款路线</strong><br>
+
+        ${spot.route.map(
+            item =>
+            `<div class="menu-item">• ${item}</div>`
+        ).join("")}
+
+        </div>
+
+        `;
+    }
+
+
+    let hoursHTML = "";
+
+
+    if (spot.hours) {
+
+        hoursHTML = `
+
+        <div class="info">
+
+        🕐 <strong>营业时间</strong><br>
+
+        ${spot.hours}
+
+        </div>
+
+        `;
+    }
+
+
+    marker.bindPopup(`
+
+    <div class="popup">
+
+        <h2>
+        🐱 ${spot.name}
+        </h2>
+
+        <div class="subtitle">
+        ${spot.subtitle}
+        </div>
+
+        ${
+            spot.source
+            ?
+            `<div class="source">
+            ${spot.source}
+            </div>`
+            :
+            ""
+        }
+
+        <div class="divider"></div>
+
+        ${
+            spot.address
+            ?
+            `<div class="info">
+
+            📍 <strong>地址</strong><br>
+
+            ${spot.address}
+
+            </div>`
+            :
+            ""
+        }
+
+        ${
+            spot.transport
+            ?
+            `<div class="info">
+
+            🚇 <strong>交通</strong><br>
+
+            ${spot.transport}
+
+            </div>`
+            :
+            ""
+        }
+
+        ${menuHTML}
+
+        ${routeHTML}
+
+        ${hoursHTML}
+
+        ${buildNearbyHTML(spot)}
+
+        <button
+        class="want-btn ${selectedSpotIndexes.has(spots.indexOf(spot)) ? "selected" : ""}"
+        data-want-index="${spots.indexOf(spot)}"
+        >
+        ${selectedSpotIndexes.has(spots.indexOf(spot)) ? "✓ 已添加到想去" : "♡ 添加到想去"}
+        </button>
+
+        <div class="divider"></div>
+
+        ${
+            (spot.google || spot.naver || spot.amap)
+            ?
+            `<div class="buttons">
+
+                ${spot.google ? `
+                <a
+                class="map-button google"
+                href="${spot.google}"
+                target="_blank"
+                rel="noopener noreferrer"
+                >
+                🗺️ Google Maps
+                </a>` : ""}
+
+                ${spot.city === "Hong Kong" && spot.amap ? `
+                <a
+                class="map-button amap"
+                href="${spot.amap}"
+                target="_blank"
+                rel="noopener noreferrer"
+                >
+                🔵 高德地图
+                </a>` : ""}
+
+                ${spot.city !== "Hong Kong" && spot.naver ? `
+                <a
+                class="map-button naver"
+                href="${spot.naver}"
+                target="_blank"
+                rel="noopener noreferrer"
+                >
+                🟢 Naver Map
+                </a>` : ""}
+
+            </div>`
+            :
+            ""
+        }
+
+        <div class="popup-credit">
+        @ChinaNarinBar
+        </div>
+
+    </div>
+
+    `);
+
+    return marker;
+}
+
+
+/* ===== 显示地点 ===== */
+
+function showSpots(
+    city = "Seoul",
+    type = "all"
+) {
+
+    markers.forEach(
+        marker =>
+        map.removeLayer(marker)
+    );
+
+    markers = [];
+
+
+    const filtered =
+    spots.filter(spot => {
+
+        const cityMatch =
+        spot.city === city;
+
+        const typeMatch =
+        type === "all" ||
+        spot.type === type;
+
+        return cityMatch &&
+               typeMatch;
+
+    });
+
+
+    filtered.forEach(spot => {
+
+        const marker =
+        createMarker(spot);
+
+        marker.addTo(map);
+
+        markers.push(marker);
+
+    });
+
+
+    if (filtered.length > 0) {
+
+        map.fitBounds(
+            L.latLngBounds(
+                filtered.map(
+                    spot =>
+                    [spot.lat, spot.lng]
+                )
+            ),
+            {
+                padding: [80, 80]
+            }
+        );
+
+    } else {
+
+        map.setView(
+            cityCenters[city],
+            13
+        );
+
+    }
+}
+
+
+
+/* ===== 根据 spots.js 自动生成地点目录 ===== */
+
+function renderSpotDirectory() {
+
+    document
+    .querySelectorAll(".spot-list")
+    .forEach(list => {
+        list.innerHTML = "";
+    });
+
+    spots.forEach((spot, index) => {
+
+        const list =
+        document.getElementById(
+            `spot-list-${spot.city}-${spot.type}`
+        );
+
+        if (!list) return;
+
+        const button =
+        document.createElement("button");
+
+        button.className =
+        "spot-button";
+
+        button.dataset.spot =
+        index;
+
+        button.textContent =
+        `🐱 ${spot.name}`;
+
+        list.appendChild(button);
+    });
+
+    document
+    .querySelectorAll(".city-button")
+    .forEach(button => {
+
+        const city =
+        button.dataset.city;
+
+        const count =
+        spots.filter(
+            spot => spot.city === city
+        ).length;
+
+        const cityNames = {
+            Seoul: "首尔",
+            Daegu: "大邱",
+            "Hong Kong": "香港"
+        };
+
+        button.textContent =
+        `${cityNames[city] || city} · ${count}个地点`;
+    });
+}
+
+renderSpotDirectory();
+
+
+/* 初始 */
+
+showSpots();
+
+
+/* ===== 城市点击 ===== */
+
+document
+.querySelectorAll('.city-button')
+.forEach(button => {
+
+    button.addEventListener(
+        'click',
+        () => {
+
+            const city =
+            button.dataset.city;
+
+
+            document
+            .querySelectorAll(
+                '.city-button'
+            )
+            .forEach(
+                b =>
+                b.classList.remove(
+                    'active'
+                )
+            );
+
+
+            button.classList.add(
+                'active'
+            );
+
+
+            document
+            .querySelectorAll(
+                '.type-list'
+            )
+            .forEach(
+                list =>
+                list.classList.remove(
+                    'show'
+                )
+            );
+
+
+            const typeList =
+            document.querySelector(
+                `[data-city-types="${city}"]`
+            );
+
+
+            if (typeList) {
+                typeList.classList.add(
+                    'show'
+                );
+            }
+
+
+            showSpots(
+                city,
+                "all"
+            );
+
+
+            document
+            .querySelectorAll(
+                `.type-button[data-city="${city}"]`
+            )
+            .forEach(
+                b =>
+                b.classList.remove(
+                    'active'
+                )
+            );
+
+
+            const allButton =
+            document.querySelector(
+                `.type-button[data-city="${city}"][data-type="all"]`
+            );
+
+
+            if (allButton) {
+                allButton.classList.add(
+                    'active'
+                );
+            }
+
+        }
+    );
+
+});
+
+
+/* ===== 类型点击 ===== */
+
+document
+.querySelectorAll('.type-button')
+.forEach(button => {
+
+    button.addEventListener(
+        'click',
+        () => {
+
+            const city =
+            button.dataset.city;
+
+            const type =
+            button.dataset.type;
+
+
+            document
+            .querySelectorAll(
+                `.type-button[data-city="${city}"]`
+            )
+            .forEach(
+                b =>
+                b.classList.remove(
+                    'active'
+                )
+            );
+
+
+            button.classList.add(
+                'active'
+            );
+
+
+            showSpots(
+                city,
+                type
+            );
+
+        }
+    );
+
+});
+
+
+/* ===== 左侧地点点击 ===== */
+
+document
+.querySelectorAll('.spot-button')
+.forEach(button => {
+
+    button.addEventListener(
+        'click',
+        () => {
+
+            const index =
+            Number(
+                button.dataset.spot
+            );
+
+
+            const spot =
+            spots[index];
+
+            /* 点击具体地点时，先恢复该城市全部 marker。
+               目录允许多个分类同时展开，因此不能沿用上一次分类留下的 marker。 */
+            showSpots(
+                spot.city,
+                "all"
+            );
+
+            map.setView(
+                [spot.lat, spot.lng],
+                18
+            );
+
+
+            markers.forEach(
+                marker => {
+
+                    const position =
+                    marker.getLatLng();
+
+
+                    if (
+                        Math.abs(
+                            position.lat -
+                            spot.lat
+                        ) < 0.00001
+
+                        &&
+
+                        Math.abs(
+                            position.lng -
+                            spot.lng
+                        ) < 0.00001
+                    ) {
+
+                        marker.openPopup();
+
+                    }
+
+                }
+            );
+
+        }
+    );
+
+});
+
+
+
+
+
+/* ===== 想去 / 路线规划 ===== */
+
+const routeLaunch = document.getElementById("routeLaunch");
+const routePanel = document.getElementById("routePanel");
+const routeSelected = document.getElementById("routeSelected");
+const routePlan = document.getElementById("routePlan");
+const routeClear = document.getElementById("routeClear");
+const routeResult = document.getElementById("routeResult");
+const routeOrder = document.getElementById("routeOrder");
+const googleRoute = document.getElementById("googleRoute");
+const naverNext = document.getElementById("naverNext");
+
+function updateRouteUI(){
+
+    routeLaunch.textContent =
+    `♡ 想去 ${selectedSpotIndexes.size}`;
+
+    routeSelected.innerHTML = "";
+
+    manualRouteOrder =
+    manualRouteOrder.filter(
+        index =>
+        selectedSpotIndexes.has(index)
+    );
+
+    selectedSpotIndexes.forEach(index => {
+        if(!manualRouteOrder.includes(index)){
+            manualRouteOrder.push(index);
+        }
+    });
+
+    if(selectedSpotIndexes.size === 0){
+        routeSelected.innerHTML =
+        '<div style="font-size:12px;color:#b096a0;">还没有添加地点。</div>';
+        routeResult.classList.remove("show");
+        saveWantList();
+        return;
+    }
+
+    manualRouteOrder.forEach((index,pos) => {
+
+        const spot =
+        spots[index];
+
+        const chip =
+        document.createElement("div");
+
+        chip.className =
+        "route-chip";
+
+        const name =
+        document.createElement("span");
+
+        name.textContent =
+        `🐱 ${spot.name}`;
+
+        const controls =
+        document.createElement("div");
+
+        controls.className =
+        "route-chip-controls";
+
+        const up =
+        document.createElement("button");
+
+        up.className =
+        "route-move";
+
+        up.textContent =
+        "↑";
+
+        up.dataset.moveIndex =
+        pos;
+
+        up.dataset.moveDir =
+        "-1";
+
+        up.disabled =
+        pos === 0;
+
+        const down =
+        document.createElement("button");
+
+        down.className =
+        "route-move";
+
+        down.textContent =
+        "↓";
+
+        down.dataset.moveIndex =
+        pos;
+
+        down.dataset.moveDir =
+        "1";
+
+        down.disabled =
+        pos === manualRouteOrder.length-1;
+
+        const remove =
+        document.createElement("button");
+
+        remove.className =
+        "route-remove";
+
+        remove.textContent =
+        "×";
+
+        remove.dataset.removeIndex =
+        index;
+
+        controls.appendChild(up);
+        controls.appendChild(down);
+        controls.appendChild(remove);
+
+        chip.appendChild(name);
+        chip.appendChild(controls);
+
+        routeSelected.appendChild(chip);
+    });
+
+    saveWantList();
+}
+
+function geoDistance(a,b){
+    const dx = a.lat - b.lat;
+    const dy = a.lng - b.lng;
+    return Math.sqrt(dx*dx + dy*dy);
+}
+
+function optimizeOrder(indexes){
+
+    if(indexes.length <= 2){
+        return [...indexes];
+    }
+
+    let bestOrder = null;
+    let bestTotal = Infinity;
+
+    indexes.forEach(start => {
+
+        const remaining = new Set(indexes);
+        remaining.delete(start);
+
+        const order = [start];
+        let current = start;
+        let total = 0;
+
+        while(remaining.size > 0){
+
+            let next = null;
+            let nextDistance = Infinity;
+
+            remaining.forEach(i => {
+
+                const d = geoDistance(
+                    spots[current],
+                    spots[i]
+                );
+
+                if(d < nextDistance){
+                    nextDistance = d;
+                    next = i;
+                }
+            });
+
+            total += nextDistance;
+            order.push(next);
+            remaining.delete(next);
+            current = next;
+        }
+
+        if(total < bestTotal){
+            bestTotal = total;
+            bestOrder = order;
+        }
+    });
+
+    return bestOrder;
+}
+
+function buildGoogleRoute(order){
+
+    if(order.length < 2){
+        return "#";
+    }
+
+    const routeLabel =
+    spot =>
+    spot.routeAddress ||
+    spot.address ||
+    spot.name;
+
+    const origin =
+    encodeURIComponent(
+        routeLabel(spots[order[0]])
+    );
+
+    const destination =
+    encodeURIComponent(
+        routeLabel(
+            spots[order[order.length-1]]
+        )
+    );
+
+    const middle =
+    order
+    .slice(1,-1)
+    .map(index =>
+        routeLabel(spots[index])
+    );
+
+    let url =
+    `https://www.google.com/maps/dir/?api=1&origin=${origin}&destination=${destination}&travelmode=transit`;
+
+    if(middle.length > 0){
+        url +=
+        "&waypoints=" +
+        encodeURIComponent(
+            middle.join("|")
+        );
+    }
+
+    return url;
+}
+
+
+function buildNaverTransitRoute(order){
+
+    if(order.length < 2){
+        return "#";
+    }
+
+    const start = spots[order[0]];
+    const end = spots[order[1]];
+
+    function placeToken(spot){
+        const raw =
+            `${spot.lng},${spot.lat},${spot.name},${spot.naverPin || ""},PLACE_POI`;
+        return encodeURIComponent(raw);
+    }
+
+    return (
+        "https://way-m.map.naver.com/quick-path/" +
+        placeToken(start) + "/" +
+        placeToken(end) +
+        "/-/transit/0"
+    );
+}
+
+
+function planSelectedRoute(){
+
+    const indexes =
+    [...selectedSpotIndexes];
+
+    if(indexes.length < 2){
+        alert("至少选择 2 个地点才能规划路线。");
+        return;
+    }
+
+    const order =
+    optimizeOrder(indexes);
+
+    manualRouteOrder =
+    [...order];
+
+    updateRouteUI();
+
+    renderRouteResult(
+        manualRouteOrder
+    );
+}
+
+function renderRouteResult(order){
+
+    routeOrder.innerHTML = "";
+
+    order.forEach((index, i) => {
+
+        const step =
+        document.createElement("div");
+
+        step.className =
+        "route-step";
+
+        step.textContent =
+        `${i+1}. ${spots[index].name}`;
+
+        routeOrder.appendChild(step);
+    });
+
+    googleRoute.href =
+    buildGoogleRoute(order);
+
+    const routeCities =
+    [...new Set(
+        order.map(index => spots[index].city)
+    )];
+
+    if(
+        routeCities.length === 1 &&
+        routeCities[0] === "Hong Kong"
+    ){
+        naverNext.textContent =
+        "🔵 高德地图";
+
+        naverNext.classList.remove(
+            "route-naver"
+        );
+
+        naverNext.classList.add(
+            "route-google"
+        );
+
+        const secondSpot =
+        spots[order[1]];
+
+        naverNext.href =
+        secondSpot.amap ||
+        secondSpot.google ||
+        "#";
+    }else{
+        naverNext.textContent =
+        "🟢 Naver Map";
+
+        naverNext.classList.remove(
+            "route-google"
+        );
+
+        naverNext.classList.add(
+            "route-naver"
+        );
+
+        naverNext.href =
+        buildNaverTransitRoute(order);
+    }
+
+    routeResult.classList.add("show");
+}
+
+document.addEventListener(
+    "click",
+    event => {
+
+        const want =
+        event.target.closest(
+            "[data-want-index]"
+        );
+
+        if(want){
+
+            const index =
+            Number(
+                want.dataset.wantIndex
+            );
+
+            if(selectedSpotIndexes.has(index)){
+                selectedSpotIndexes.delete(index);
+                manualRouteOrder =
+                manualRouteOrder.filter(
+                    i => i !== index
+                );
+                want.textContent = "♡ 添加到想去";
+                want.classList.remove("selected");
+            }else{
+                selectedSpotIndexes.add(index);
+                if(!manualRouteOrder.includes(index)){
+                    manualRouteOrder.push(index);
+                }
+                want.textContent = "✓ 已添加到想去";
+                want.classList.add("selected");
+            }
+
+            routeResult.classList.remove("show");
+            updateRouteUI();
+            return;
+        }
+
+        const remove =
+        event.target.closest(
+            "[data-remove-index]"
+        );
+
+        if(remove){
+            const index =
+            Number(remove.dataset.removeIndex);
+
+            selectedSpotIndexes.delete(index);
+
+            manualRouteOrder =
+            manualRouteOrder.filter(
+                i => i !== index
+            );
+
+            routeResult.classList.remove("show");
+            updateRouteUI();
+            return;
+        }
+
+        const move =
+        event.target.closest(
+            "[data-move-index]"
+        );
+
+        if(move){
+
+            const pos =
+            Number(move.dataset.moveIndex);
+
+            const dir =
+            Number(move.dataset.moveDir);
+
+            const next =
+            pos + dir;
+
+            if(
+                next >= 0 &&
+                next < manualRouteOrder.length
+            ){
+                [
+                    manualRouteOrder[pos],
+                    manualRouteOrder[next]
+                ] = [
+                    manualRouteOrder[next],
+                    manualRouteOrder[pos]
+                ];
+
+                updateRouteUI();
+
+                if(manualRouteOrder.length >= 2){
+                    renderRouteResult(
+                        manualRouteOrder
+                    );
+                }
+            }
+
+            return;
+        }
+
+        const nearby =
+        event.target.closest(
+            "[data-nearby-index]"
+        );
+
+        if(nearby){
+
+            const index =
+            Number(
+                nearby.dataset.nearbyIndex
+            );
+
+            const spot =
+            spots[index];
+
+            map.setView(
+                [spot.lat,spot.lng],
+                17
+            );
+
+            markers.forEach(marker => {
+                const p = marker.getLatLng();
+
+                if(
+                    Math.abs(p.lat-spot.lat) < 0.00001 &&
+                    Math.abs(p.lng-spot.lng) < 0.00001
+                ){
+                    marker.openPopup();
+                }
+            });
+
+            return;
+        }
+    }
+);
+
+routeLaunch.addEventListener(
+    "click",
+    () => {
+        routePanel.classList.toggle("show");
+    }
+);
+
+routePlan.addEventListener(
+    "click",
+    planSelectedRoute
+);
+
+routeClear.addEventListener(
+    "click",
+    () => {
+        selectedSpotIndexes.clear();
+        manualRouteOrder = [];
+        routeResult.classList.remove("show");
+        updateRouteUI();
+    }
+);
+
+updateRouteUI();
+
+
+
+
+/* ===== 搜索地点 ===== */
+
+const spotSearch =
+document.getElementById("spotSearch");
+
+const searchResults =
+document.getElementById("searchResults");
+
+function openSpotByIndex(index){
+
+    const spot =
+    spots[index];
+
+    showSpots(
+        spot.city,
+        "all"
+    );
+
+    map.setView(
+        [spot.lat,spot.lng],
+        17
+    );
+
+    setTimeout(() => {
+
+        markers.forEach(marker => {
+
+            const p =
+            marker.getLatLng();
+
+            if(
+                Math.abs(p.lat-spot.lat) < 0.00001 &&
+                Math.abs(p.lng-spot.lng) < 0.00001
+            ){
+                marker.openPopup();
+            }
+        });
+
+    },80);
+}
+
+spotSearch.addEventListener(
+    "input",
+    () => {
+
+        const q =
+        spotSearch.value
+        .trim()
+        .toLowerCase();
+
+        searchResults.innerHTML = "";
+
+        if(!q){
+            searchResults.classList.remove("show");
+            return;
+        }
+
+        const matched =
+        spots
+        .map((spot,index) => ({
+            spot,index
+        }))
+        .filter(item => {
+
+            const text =
+            [
+                item.spot.name,
+                item.spot.subtitle || "",
+                item.spot.address || ""
+            ]
+            .join(" ")
+            .toLowerCase();
+
+            return text.includes(q);
+        })
+        .slice(0,8);
+
+        if(!matched.length){
+            searchResults.innerHTML =
+            '<div style="padding:9px 10px;font-size:11px;color:#ad929d;">没有找到地点</div>';
+            searchResults.classList.add("show");
+            return;
+        }
+
+        matched.forEach(item => {
+
+            const btn =
+            document.createElement("button");
+
+            btn.className =
+            "search-result";
+
+            btn.textContent =
+            `🐱 ${item.spot.name}`;
+
+            btn.addEventListener(
+                "click",
+                () => {
+
+                    openSpotByIndex(
+                        item.index
+                    );
+
+                    spotSearch.value = "";
+                    searchResults.classList.remove("show");
+
+                    if(window.innerWidth <= 700){
+                        closeSidebar();
+                    }
+                }
+            );
+
+            searchResults.appendChild(btn);
+        });
+
+        searchResults.classList.add("show");
+    }
+);
+
+
+
+/* ===== 全设备目录控制 ===== */
+const sidebar = document.getElementById("sidebar");
+const menuToggle = document.getElementById("menuToggle");
+const sidebarClose = document.getElementById("sidebarClose");
+const sidebarOverlay = document.getElementById("sidebarOverlay");
+
+function isMobile() {
+    return window.innerWidth <= 700;
+}
+
+function openSidebar() {
+    if (isMobile()) {
+        sidebar.classList.add("open");
+        sidebarOverlay.classList.add("open");
+    } else {
+        document.body.classList.remove("sidebar-collapsed");
+    }
+    setTimeout(() => map.invalidateSize(), 300);
+}
+
+function closeSidebar() {
+    if (isMobile()) {
+        sidebar.classList.remove("open");
+        sidebarOverlay.classList.remove("open");
+    } else {
+        document.body.classList.add("sidebar-collapsed");
+    }
+    setTimeout(() => map.invalidateSize(), 300);
+}
+
+menuToggle.addEventListener("click", openSidebar);
+sidebarClose.addEventListener("click", closeSidebar);
+sidebarOverlay.addEventListener("click", closeSidebar);
+
+function applyResponsiveSidebar() {
+    if (isMobile()) {
+        document.body.classList.remove("sidebar-collapsed");
+        sidebar.classList.remove("open");
+        sidebarOverlay.classList.remove("open");
+    } else {
+        sidebar.classList.remove("open");
+        sidebarOverlay.classList.remove("open");
+    }
+    setTimeout(() => map.invalidateSize(), 200);
+}
+
+window.addEventListener("resize", applyResponsiveSidebar);
+applyResponsiveSidebar();
+
+/* ===== 独立折叠目录控制 ===== */
+
+function closeAllCitySections(){
+    document.querySelectorAll(".city-button").forEach(btn => btn.classList.remove("open"));
+    document.querySelectorAll(".type-list").forEach(list => list.classList.remove("open"));
+    document.querySelectorAll(".type-button").forEach(btn => btn.classList.remove("open"));
+    document.querySelectorAll(".spot-list").forEach(list => list.classList.remove("open"));
+}
+
+/* 国家独立开关 */
+document.querySelectorAll(".country-title").forEach(title => {
+    const group = title.nextElementSibling;
+    if(!group || !group.classList.contains("country-group")) return;
+
+    title.addEventListener("click", event => {
+        event.stopPropagation();
+        const hidden = group.classList.toggle("collapsed");
+        title.classList.toggle("collapsed", hidden);
+    });
+});
+
+/* 城市独立开关：打开大邱不会收起首尔 */
+document.querySelectorAll(".city-button").forEach(btn => {
+    btn.addEventListener("click", event => {
+        event.preventDefault();
+        event.stopImmediatePropagation();
+
+        const city = btn.dataset.city;
+        const list = document.querySelector(`.type-list[data-city-types="${city}"]`);
+        if(!list) return;
+
+        const willOpen = !list.classList.contains("open");
+        list.classList.toggle("open", willOpen);
+        btn.classList.toggle("open", willOpen);
+
+        if(willOpen && typeof showSpots === "function"){
+            showSpots(city, "all");
+        }
+    }, true);
+});
+
+/* 分类独立开关：餐厅、咖啡厅、其他可以同时展开 */
+document.querySelectorAll('.type-button:not([data-type="all"])').forEach(btn => {
+    btn.addEventListener("click", event => {
+        event.preventDefault();
+        event.stopImmediatePropagation();
+
+        const city = btn.dataset.city;
+        const type = btn.dataset.type;
+        const list = document.getElementById(`spot-list-${city}-${type}`);
+        if(!list) return;
+
+        const willOpen = !list.classList.contains("open");
+        list.classList.toggle("open", willOpen);
+        btn.classList.toggle("open", willOpen);
+
+        if(willOpen && typeof showSpots === "function"){
+            showSpots(city, type);
+        }
+    }, true);
+});
+
+/* 初始只显示国家和城市，具体分类/地点收起 */
+closeAllCitySections();
+
+</script>
+
+</body>
+</html>
